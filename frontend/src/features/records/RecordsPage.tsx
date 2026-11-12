@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Card } from '../../components/ui/Card';
-import { EmptyState } from '../../components/ui/EmptyState';
 import { Button } from '../../components/ui/Button';
-import { Database, Plus } from 'lucide-react';
 import { DocumentsTab } from './DocumentsTab';
 import { UtilityTab } from './UtilityTab';
+import { ProductionTab } from './ProductionTab';
+
 
 export const RecordsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'utility' | 'production' | 'documents'>('utility');
@@ -38,27 +37,12 @@ export const RecordsPage: React.FC = () => {
 
       {activeTab === 'utility' ? (
         <UtilityTab />
-      ) : activeTab === 'documents' ? (
-        <DocumentsTab />
+      ) : activeTab === 'production' ? (
+        <ProductionTab />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Monthly Production Records</h2>
-            <Button variant="outline" size="sm">
-              <Plus size={16} />
-              <span>New Production Record</span>
-            </Button>
-          </div>
-
-          <Card>
-            <EmptyState
-              icon={<Database size={28} />}
-              title="No production records found"
-              description="Start tracking by creating your first monthly production entry."
-            />
-          </Card>
-        </div>
+        <DocumentsTab />
       )}
     </div>
   );
 };
+
