@@ -9,6 +9,7 @@ from alembic import context
 # Ensure app is in path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+import app.models  # noqa: F401 - ensure all models register with Base.metadata
 from app.core.config import settings
 from app.db.base import Base
 
@@ -21,6 +22,9 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
+    url = config.get_main_option("sqlalchemy.url")
+    if url:
+        return url
     return settings.DATABASE_URL
 
 
