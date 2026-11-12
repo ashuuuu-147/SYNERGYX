@@ -157,3 +157,4 @@ describe('DocumentsTab UI', () => {
     confirmSpy.mockRestore();
   });
 });
+

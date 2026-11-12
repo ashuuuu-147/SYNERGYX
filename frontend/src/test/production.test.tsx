@@ -146,3 +146,4 @@ describe('ProductionTab UI', () => {
     confirmSpy.mockRestore();
   });
 });
+
