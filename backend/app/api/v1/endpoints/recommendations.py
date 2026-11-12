@@ -57,3 +57,4 @@ def dismiss_recommendation(
         org_id=current_user.organization_id,
         recommendation_id=recommendation_id,
     )
+

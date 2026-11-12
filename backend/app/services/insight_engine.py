@@ -28,11 +28,17 @@ from app.core.rules_config import (
     WATER_INTENSITY_UP_THRESHOLD,
 )
 from app.models.action import Action
+from app.models.ai_log import AiGenerationLog
 from app.models.insight import Insight
 from app.models.organization import Organization
 from app.models.production_record import ProductionRecord
 from app.models.recommendation import Recommendation
 from app.models.utility_record import UtilityRecord
+from app.schemas.ai import InsightFacts
+from app.services.ai_provider import (
+    AiProviderError,
+    get_explanation_provider,
+)
 from app.services.calculations import (
     MonthInputData,
     ResourceData,
@@ -423,7 +429,9 @@ class InsightEngineService:
                     )
                 )
 
-        # 8. Idempotent Database Upsert
+        # 8. AI Explanation and Idempotent Database Upsert
+        provider, provider_name = get_explanation_provider(allow_external_ai=org.allow_external_ai)
+
         # Fetch existing insights for (org_id, selected_month)
         existing_insights = list(
             db.scalars(
@@ -438,6 +446,79 @@ class InsightEngineService:
         persisted_insights: list[Insight] = []
 
         for cand in candidates:
+            source_type = "rules"
+
+            # If user consented to external AI, attempt structured explanation
+            if org.allow_external_ai and provider_name == "openai":
+                facts = InsightFacts(
+                    industry=org.industry or "other",
+                    period_month=selected_month,
+                    metric_code=cand.metric_code,
+                    resource_type=cand.resource_type,
+                    calculated_quantity=cand.observed_value,
+                    canonical_unit=cand.unit,
+                    production_quantity=curr_input.production_quantity,
+                    production_unit=prod_unit,
+                    calculated_intensity=cand.observed_value,
+                    comparison_value=cand.comparison_value,
+                    change_percent=cand.change_percent,
+                    data_quality_caveats=[cand.caveat] if cand.caveat else [],
+                    allowed_recommendation_categories=[cand.metric_code],
+                )
+                try:
+                    explanation = provider.explain_insights(facts)
+                    cand.summary = explanation.summary
+                    if cand.recommendation and explanation.next_steps:
+                        cand.recommendation.steps_json = explanation.next_steps
+                    cand.caveat = explanation.caveat
+                    source_type = "ai_assisted"
+                    db.add(
+                        AiGenerationLog(
+                            organization_id=org_id,
+                            provider="openai",
+                            period_month=selected_month,
+                            status="success",
+                            engine_version=ENGINE_VERSION,
+                        )
+                    )
+                except AiProviderError as err:
+                    logger.info("AI provider fallback triggered (%s): %s", err.category, err)
+                    source_type = "rules"
+                    db.add(
+                        AiGenerationLog(
+                            organization_id=org_id,
+                            provider="openai",
+                            period_month=selected_month,
+                            status="fallback",
+                            error_category=err.category,
+                            engine_version=ENGINE_VERSION,
+                        )
+                    )
+                except Exception as err:
+                    logger.warning("Unexpected error during AI generation: %s", err)
+                    source_type = "rules"
+                    db.add(
+                        AiGenerationLog(
+                            organization_id=org_id,
+                            provider="openai",
+                            period_month=selected_month,
+                            status="fallback",
+                            error_category="unexpected_error",
+                            engine_version=ENGINE_VERSION,
+                        )
+                    )
+            elif not org.allow_external_ai and provider_name == "rules":
+                # Deterministic rules audit log
+                db.add(
+                    AiGenerationLog(
+                        organization_id=org_id,
+                        provider="rules",
+                        period_month=selected_month,
+                        status="success",
+                        engine_version=ENGINE_VERSION,
+                    )
+                )
+
             insight = existing_by_code.get(cand.metric_code)
             if insight:
                 # Update existing insight
@@ -448,7 +529,7 @@ class InsightEngineService:
                 insight.comparison_value = cand.comparison_value
                 insight.change_percent = cand.change_percent
                 insight.unit = cand.unit
-                insight.source_type = "rules"
+                insight.source_type = source_type
                 insight.caveat = cand.caveat
                 insight.engine_version = ENGINE_VERSION
             else:
@@ -465,7 +546,7 @@ class InsightEngineService:
                     comparison_value=cand.comparison_value,
                     change_percent=cand.change_percent,
                     unit=cand.unit,
-                    source_type="rules",
+                    source_type=source_type,
                     caveat=cand.caveat,
                     engine_version=ENGINE_VERSION,
                 )

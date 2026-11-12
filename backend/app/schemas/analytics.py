@@ -96,3 +96,4 @@ class AnalyticsResponse(BaseModel):
     summary_table: list[AnalyticsSummaryRow]
     totals: AnalyticsTotals
     data_quality_notes: list[str] = Field(default_factory=list)
+

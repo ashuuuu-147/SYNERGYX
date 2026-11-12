@@ -38,3 +38,4 @@ CAVEAT_MISSING_COST = (
 CAVEAT_DATA_READINESS = (
     "At least two consecutive comparable months are required for month-over-month trend curves."
 )
+

@@ -92,3 +92,4 @@ export const analyticsApi = {
     return apiClient<AnalyticsResponse>(endpoint, { method: 'GET' });
   },
 };
+

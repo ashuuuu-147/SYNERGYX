@@ -65,3 +65,4 @@ class InsightGenerateResponse(BaseModel):
     recommendations_generated_count: int
     engine_version: str
     insights: list[InsightResponse]
+

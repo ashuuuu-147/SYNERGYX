@@ -30,3 +30,4 @@ def get_analytics(
         resource_type=resource_type,
         metric=metric,
     )
+

@@ -48,3 +48,4 @@ def generate_insights(
         engine_version=ENGINE_VERSION,
         insights=insights,
     )
+
