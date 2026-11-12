@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth,
+    dashboard,
     documents,
     organization,
     production_records,
@@ -17,3 +18,4 @@ api_v1_router.include_router(organization.router, prefix="/organization", tags=[
 api_v1_router.include_router(documents.router)
 api_v1_router.include_router(utility_records.router)
 api_v1_router.include_router(production_records.router)
+api_v1_router.include_router(dashboard.router)
