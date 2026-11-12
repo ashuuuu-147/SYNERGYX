@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    actions,
     analytics,
     auth,
     dashboard,
@@ -25,3 +26,4 @@ api_v1_router.include_router(dashboard.router)
 api_v1_router.include_router(analytics.router)
 api_v1_router.include_router(insights.router)
 api_v1_router.include_router(recommendations.router)
+api_v1_router.include_router(actions.router)
