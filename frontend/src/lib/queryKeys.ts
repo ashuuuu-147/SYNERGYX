@@ -42,3 +42,4 @@ export const queryKeys = {
     monthly: (month: string) => ['reports', 'monthly', month] as const,
   },
 };
+

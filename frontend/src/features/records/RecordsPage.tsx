@@ -64,3 +64,4 @@ export const RecordsPage: React.FC = () => {
     </div>
   );
 };
+

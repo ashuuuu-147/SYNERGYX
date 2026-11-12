@@ -35,3 +35,4 @@ export const authStorage = {
     return !!authStorage.getToken();
   },
 };
+

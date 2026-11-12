@@ -42,3 +42,4 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description
     </Card>
   );
 };
+

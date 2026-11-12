@@ -27,3 +27,4 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
     />
   );
 };
+

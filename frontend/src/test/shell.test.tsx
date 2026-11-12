@@ -35,3 +35,4 @@ describe('Design Tokens & Application Shell', () => {
     expect(screen.getByText('m³')).toBeInTheDocument();
   });
 });
+

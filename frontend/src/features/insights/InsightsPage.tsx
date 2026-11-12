@@ -30,3 +30,4 @@ export const InsightsPage: React.FC = () => {
     </div>
   );
 };
+
