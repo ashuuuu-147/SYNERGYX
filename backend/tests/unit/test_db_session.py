@@ -1,5 +1,7 @@
 """Test database session lifecycle and dependency behavior."""
 
+import contextlib
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -14,10 +16,8 @@ def test_session_lifecycle_yields_and_closes():
     assert session.is_active
 
     # Closing generator should trigger the finally block
-    try:
+    with contextlib.suppress(StopIteration):
         next(gen)
-    except StopIteration:
-        pass
 
 
 def test_transaction_rollback_on_error():
@@ -26,9 +26,7 @@ def test_transaction_rollback_on_error():
     TestSession = sessionmaker(bind=test_engine)
 
     with test_engine.connect() as conn:
-        conn.execute(
-            text("CREATE TABLE test_items (id INTEGER PRIMARY KEY, name TEXT)")
-        )
+        conn.execute(text("CREATE TABLE test_items (id INTEGER PRIMARY KEY, name TEXT)"))
         conn.commit()
 
     session = TestSession()

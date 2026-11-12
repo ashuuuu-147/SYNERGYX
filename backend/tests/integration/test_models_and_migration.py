@@ -1,10 +1,13 @@
 """Integration tests for SQLAlchemy domain models and Alembic migrations."""
 
+import contextlib
+import os
 from datetime import date
 from decimal import Decimal
 
 import pytest
 from alembic.config import Config
+from alembic.util import CommandError
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
@@ -24,10 +27,13 @@ def migrated_db():
     db_file = "test_alembic_integration.db"
     db_url = f"sqlite:///{db_file}"
 
+    if os.path.exists(db_file):
+        with contextlib.suppress(OSError):
+            os.remove(db_file)
+
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", db_url)
 
-    # Run upgrade head
     command.upgrade(alembic_cfg, "head")
 
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
@@ -36,20 +42,14 @@ def migrated_db():
     yield TestingSession
 
     # Downgrade and clean up
-    try:
+    with contextlib.suppress(CommandError, OSError):
         command.downgrade(alembic_cfg, "base")
-    except (command.CommandError, OSError):
-        pass
 
     engine.dispose()
 
-    import os
-
     if os.path.exists(db_file):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(db_file)
-        except OSError:
-            pass
 
 
 def test_migration_and_decimal_roundtrip(migrated_db):

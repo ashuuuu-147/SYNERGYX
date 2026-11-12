@@ -46,9 +46,7 @@ def create_app() -> FastAPI:
         duration = round((time.time() - start_time) * 1000, 2)
         response.headers["X-Request-ID"] = request_id
 
-        logger.info(
-            f"{request.method} {request.url.path} completed with status {response.status_code} in {duration}ms"
-        )
+        logger.info(f"{request.method} {request.url.path} completed with status {response.status_code} in {duration}ms")
         return response
 
     # Exception Handlers

@@ -28,9 +28,7 @@ class Document(Base):
         nullable=False,
         index=True,
     )
-    storage_provider: Mapped[str] = mapped_column(
-        sa.String(20), nullable=False
-    )  # 'local' or 'supabase'
+    storage_provider: Mapped[str] = mapped_column(sa.String(20), nullable=False)  # 'local' or 'supabase'
     storage_path: Mapped[str] = mapped_column(sa.Text, nullable=False)
     original_filename: Mapped[str] = mapped_column(sa.String(255), nullable=False)
     mime_type: Mapped[str] = mapped_column(sa.String(100), nullable=False)

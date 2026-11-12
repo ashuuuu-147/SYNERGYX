@@ -44,9 +44,7 @@ def upgrade() -> None:
         sa.Column("error_category", sa.String(length=50), nullable=True),
         sa.Column("engine_version", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -73,9 +71,7 @@ def upgrade() -> None:
         sa.Column("caveat", sa.Text(), nullable=True),
         sa.Column("engine_version", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -100,15 +96,11 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
-    op.create_index(
-        op.f("ix_users_organization_id"), "users", ["organization_id"], unique=False
-    )
+    op.create_index(op.f("ix_users_organization_id"), "users", ["organization_id"], unique=False)
     op.create_table(
         "documents",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -120,15 +112,11 @@ def upgrade() -> None:
         sa.Column("size_bytes", sa.BigInteger(), nullable=False),
         sa.Column("uploaded_by", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["uploaded_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_documents_created_at"), "documents", ["created_at"], unique=False
-    )
+    op.create_index(op.f("ix_documents_created_at"), "documents", ["created_at"], unique=False)
     op.create_index(
         op.f("ix_documents_organization_id"),
         "documents",
@@ -147,13 +135,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "organization_id", "period_month", name="uq_production_org_month"
-        ),
+        sa.UniqueConstraint("organization_id", "period_month", name="uq_production_org_month"),
     )
     op.create_index(
         op.f("ix_production_records_organization_id"),
@@ -177,16 +161,12 @@ def upgrade() -> None:
             nullable=True,
         ),
         sa.Column("estimated_saving_unit", sa.String(length=20), nullable=True),
-        sa.Column(
-            "estimated_saving_inr", sa.Numeric(precision=14, scale=2), nullable=True
-        ),
+        sa.Column("estimated_saving_inr", sa.Numeric(precision=14, scale=2), nullable=True),
         sa.Column("assumptions", sa.Text(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["insight_id"], ["insights.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -216,12 +196,8 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
-        sa.ForeignKeyConstraint(
-            ["recommendation_id"], ["recommendations.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["recommendation_id"], ["recommendations.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -230,9 +206,7 @@ def upgrade() -> None:
         ["organization_id", "status", "due_date"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_actions_organization_id"), "actions", ["organization_id"], unique=False
-    )
+    op.create_index(op.f("ix_actions_organization_id"), "actions", ["organization_id"], unique=False)
     op.create_table(
         "utility_records",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -249,9 +223,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["document_id"], ["documents.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(
-            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("document_id"),
         sa.UniqueConstraint(
@@ -278,22 +250,16 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_index(
-        op.f("ix_utility_records_organization_id"), table_name="utility_records"
-    )
+    op.drop_index(op.f("ix_utility_records_organization_id"), table_name="utility_records")
     op.drop_index("ix_utility_org_month", table_name="utility_records")
     op.drop_table("utility_records")
     op.drop_index(op.f("ix_actions_organization_id"), table_name="actions")
     op.drop_index("ix_actions_org_status_due", table_name="actions")
     op.drop_table("actions")
-    op.drop_index(
-        op.f("ix_recommendations_organization_id"), table_name="recommendations"
-    )
+    op.drop_index(op.f("ix_recommendations_organization_id"), table_name="recommendations")
     op.drop_index("ix_recommendations_org_status", table_name="recommendations")
     op.drop_table("recommendations")
-    op.drop_index(
-        op.f("ix_production_records_organization_id"), table_name="production_records"
-    )
+    op.drop_index(op.f("ix_production_records_organization_id"), table_name="production_records")
     op.drop_table("production_records")
     op.drop_index(op.f("ix_documents_organization_id"), table_name="documents")
     op.drop_index(op.f("ix_documents_created_at"), table_name="documents")
@@ -304,9 +270,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_insights_organization_id"), table_name="insights")
     op.drop_index("ix_insights_org_month", table_name="insights")
     op.drop_table("insights")
-    op.drop_index(
-        op.f("ix_ai_generation_logs_organization_id"), table_name="ai_generation_logs"
-    )
+    op.drop_index(op.f("ix_ai_generation_logs_organization_id"), table_name="ai_generation_logs")
     op.drop_table("ai_generation_logs")
     op.drop_table("organizations")
     # ### end Alembic commands ###

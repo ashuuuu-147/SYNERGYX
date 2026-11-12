@@ -28,9 +28,7 @@ class User(Base):
         index=True,
     )
     full_name: Mapped[str] = mapped_column(sa.String(80), nullable=False)
-    email: Mapped[str] = mapped_column(
-        sa.String(255), unique=True, index=True, nullable=False
-    )
+    email: Mapped[str] = mapped_column(sa.String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(sa.Text, nullable=False)
     is_active: Mapped[bool] = mapped_column(sa.Boolean, default=True, nullable=False)
 

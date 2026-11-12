@@ -30,13 +30,9 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(sa.String(120), nullable=False)
     industry: Mapped[str] = mapped_column(sa.String(40), nullable=False)
     location: Mapped[str] = mapped_column(sa.String(100), nullable=False)
-    country_code: Mapped[str] = mapped_column(
-        sa.String(2), default="IN", nullable=False
-    )
+    country_code: Mapped[str] = mapped_column(sa.String(2), default="IN", nullable=False)
     production_unit: Mapped[str] = mapped_column(sa.String(20), nullable=False)
-    allow_external_ai: Mapped[bool] = mapped_column(
-        sa.Boolean, default=False, nullable=False
-    )
+    allow_external_ai: Mapped[bool] = mapped_column(sa.Boolean, default=False, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True),
@@ -51,24 +47,16 @@ class Organization(Base):
     )
 
     # Relationships
-    users: Mapped[list["User"]] = relationship(
-        back_populates="organization", cascade="all, delete-orphan"
-    )
+    users: Mapped[list["User"]] = relationship(back_populates="organization", cascade="all, delete-orphan")
     utility_records: Mapped[list["UtilityRecord"]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
     )
     production_records: Mapped[list["ProductionRecord"]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
     )
-    documents: Mapped[list["Document"]] = relationship(
-        back_populates="organization", cascade="all, delete-orphan"
-    )
-    insights: Mapped[list["Insight"]] = relationship(
-        back_populates="organization", cascade="all, delete-orphan"
-    )
+    documents: Mapped[list["Document"]] = relationship(back_populates="organization", cascade="all, delete-orphan")
+    insights: Mapped[list["Insight"]] = relationship(back_populates="organization", cascade="all, delete-orphan")
     recommendations: Mapped[list["Recommendation"]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
     )
-    actions: Mapped[list["Action"]] = relationship(
-        back_populates="organization", cascade="all, delete-orphan"
-    )
+    actions: Mapped[list["Action"]] = relationship(back_populates="organization", cascade="all, delete-orphan")

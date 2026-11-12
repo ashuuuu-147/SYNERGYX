@@ -15,9 +15,7 @@ def test_development_config_defaults():
 
 def test_production_config_rejects_insecure_jwt_secret():
     """Verify production fails fast if JWT_SECRET_KEY is insecure."""
-    with pytest.raises(
-        ValueError, match="JWT_SECRET_KEY must be a secure random secret"
-    ):
+    with pytest.raises(ValueError, match="JWT_SECRET_KEY must be a secure random secret"):
         Settings(
             APP_ENV="production",
             JWT_SECRET_KEY="development-key",
@@ -30,9 +28,7 @@ def test_production_config_rejects_insecure_jwt_secret():
 
 def test_production_config_rejects_local_storage():
     """Verify production fails if storage backend is local."""
-    with pytest.raises(
-        ValueError, match="STORAGE_BACKEND cannot be 'local' in production"
-    ):
+    with pytest.raises(ValueError, match="STORAGE_BACKEND cannot be 'local' in production"):
         Settings(
             APP_ENV="production",
             JWT_SECRET_KEY="super-secret-random-key-32-chars-long!",

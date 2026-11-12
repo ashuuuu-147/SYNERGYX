@@ -23,13 +23,9 @@ class AiGenerationLog(Base):
         nullable=False,
         index=True,
     )
-    provider: Mapped[str] = mapped_column(
-        sa.String(20), nullable=False
-    )  # rules, openai
+    provider: Mapped[str] = mapped_column(sa.String(20), nullable=False)  # rules, openai
     period_month: Mapped[date] = mapped_column(sa.Date, nullable=False)
-    status: Mapped[str] = mapped_column(
-        sa.String(20), nullable=False
-    )  # success, fallback, error
+    status: Mapped[str] = mapped_column(sa.String(20), nullable=False)  # success, fallback, error
     error_category: Mapped[str | None] = mapped_column(sa.String(50), nullable=True)
     engine_version: Mapped[str] = mapped_column(sa.String(30), nullable=False)
 

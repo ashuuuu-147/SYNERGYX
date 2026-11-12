@@ -19,9 +19,7 @@ if TYPE_CHECKING:
 class Recommendation(Base):
     __tablename__ = "recommendations"
 
-    __table_args__ = (
-        sa.Index("ix_recommendations_org_status", "organization_id", "status"),
-    )
+    __table_args__ = (sa.Index("ix_recommendations_org_status", "organization_id", "status"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         sa.Uuid(as_uuid=True),
@@ -42,21 +40,13 @@ class Recommendation(Base):
     title: Mapped[str] = mapped_column(sa.String(180), nullable=False)
     description: Mapped[str] = mapped_column(sa.Text, nullable=False)
     steps_json: Mapped[list[Any]] = mapped_column(sa.JSON, default=list, nullable=False)
-    priority: Mapped[str] = mapped_column(
-        sa.String(10), default="medium", nullable=False
-    )  # low, medium, high
+    priority: Mapped[str] = mapped_column(sa.String(10), default="medium", nullable=False)  # low, medium, high
     status: Mapped[str] = mapped_column(
         sa.String(20), default="proposed", nullable=False
     )  # proposed, accepted, dismissed, completed
-    estimated_saving_quantity: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(18, 3), nullable=True
-    )
-    estimated_saving_unit: Mapped[str | None] = mapped_column(
-        sa.String(20), nullable=True
-    )
-    estimated_saving_inr: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(14, 2), nullable=True
-    )
+    estimated_saving_quantity: Mapped[Decimal | None] = mapped_column(sa.Numeric(18, 3), nullable=True)
+    estimated_saving_unit: Mapped[str | None] = mapped_column(sa.String(20), nullable=True)
+    estimated_saving_inr: Mapped[Decimal | None] = mapped_column(sa.Numeric(14, 2), nullable=True)
     assumptions: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -72,10 +62,6 @@ class Recommendation(Base):
     )
 
     # Relationships
-    organization: Mapped["Organization"] = relationship(
-        back_populates="recommendations"
-    )
-    insight: Mapped[Optional["Insight"]] = relationship(
-        back_populates="recommendations"
-    )
+    organization: Mapped["Organization"] = relationship(back_populates="recommendations")
+    insight: Mapped[Optional["Insight"]] = relationship(back_populates="recommendations")
     actions: Mapped[list["Action"]] = relationship(back_populates="recommendation")

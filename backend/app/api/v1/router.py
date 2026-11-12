@@ -2,9 +2,8 @@
 
 from fastapi import APIRouter
 
+from app.api.v1.endpoints import auth
+
 api_v1_router = APIRouter()
 
-# Domain routes will be registered here in subsequent tasks:
-# api_v1_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-# api_v1_router.include_router(org_router, prefix="/organization", tags=["organization"])
-# etc.
+api_v1_router.include_router(auth.router, prefix="/auth", tags=["auth"])

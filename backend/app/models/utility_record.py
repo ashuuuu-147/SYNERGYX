@@ -39,9 +39,7 @@ class UtilityRecord(Base):
         nullable=False,
         index=True,
     )
-    resource_type: Mapped[str] = mapped_column(
-        sa.String(20), nullable=False
-    )  # electricity, water, fuel
+    resource_type: Mapped[str] = mapped_column(sa.String(20), nullable=False)  # electricity, water, fuel
     period_month: Mapped[date] = mapped_column(sa.Date, nullable=False)
     quantity: Mapped[Decimal] = mapped_column(sa.Numeric(14, 3), nullable=False)
     unit: Mapped[str] = mapped_column(sa.String(10), nullable=False)  # kWh, m3, L
@@ -72,9 +70,5 @@ class UtilityRecord(Base):
     )
 
     # Relationships
-    organization: Mapped["Organization"] = relationship(
-        back_populates="utility_records"
-    )
-    document: Mapped[Optional["Document"]] = relationship(
-        back_populates="utility_record"
-    )
+    organization: Mapped["Organization"] = relationship(back_populates="utility_records")
+    document: Mapped[Optional["Document"]] = relationship(back_populates="utility_record")

@@ -59,6 +59,4 @@ class ProductionRecord(Base):
     )
 
     # Relationships
-    organization: Mapped["Organization"] = relationship(
-        back_populates="production_records"
-    )
+    organization: Mapped["Organization"] = relationship(back_populates="production_records")

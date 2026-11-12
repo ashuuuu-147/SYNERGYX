@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 class Action(Base):
     __tablename__ = "actions"
 
-    __table_args__ = (
-        sa.Index("ix_actions_org_status_due", "organization_id", "status", "due_date"),
-    )
+    __table_args__ = (sa.Index("ix_actions_org_status_due", "organization_id", "status", "due_date"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         sa.Uuid(as_uuid=True),
@@ -43,9 +41,7 @@ class Action(Base):
         sa.String(20), default="pending", nullable=False
     )  # pending, in_progress, completed, cancelled
     due_date: Mapped[date | None] = mapped_column(sa.Date, nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(
-        sa.DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True), nullable=True)
     notes: Mapped[str | None] = mapped_column(sa.String(1000), nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         sa.Uuid(as_uuid=True),
@@ -67,6 +63,4 @@ class Action(Base):
 
     # Relationships
     organization: Mapped["Organization"] = relationship(back_populates="actions")
-    recommendation: Mapped[Optional["Recommendation"]] = relationship(
-        back_populates="actions"
-    )
+    recommendation: Mapped[Optional["Recommendation"]] = relationship(back_populates="actions")

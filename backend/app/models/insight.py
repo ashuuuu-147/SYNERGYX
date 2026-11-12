@@ -18,9 +18,7 @@ if TYPE_CHECKING:
 class Insight(Base):
     __tablename__ = "insights"
 
-    __table_args__ = (
-        sa.Index("ix_insights_org_month", "organization_id", "period_month"),
-    )
+    __table_args__ = (sa.Index("ix_insights_org_month", "organization_id", "period_month"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         sa.Uuid(as_uuid=True),
@@ -36,24 +34,14 @@ class Insight(Base):
     period_month: Mapped[date] = mapped_column(sa.Date, nullable=False)
     metric_code: Mapped[str] = mapped_column(sa.String(60), nullable=False)
     resource_type: Mapped[str | None] = mapped_column(sa.String(20), nullable=True)
-    severity: Mapped[str] = mapped_column(
-        sa.String(10), nullable=False
-    )  # low, medium, high
+    severity: Mapped[str] = mapped_column(sa.String(10), nullable=False)  # low, medium, high
     title: Mapped[str] = mapped_column(sa.String(180), nullable=False)
     summary: Mapped[str] = mapped_column(sa.Text, nullable=False)
-    observed_value: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(18, 6), nullable=True
-    )
-    comparison_value: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(18, 6), nullable=True
-    )
-    change_percent: Mapped[Decimal | None] = mapped_column(
-        sa.Numeric(10, 3), nullable=True
-    )
+    observed_value: Mapped[Decimal | None] = mapped_column(sa.Numeric(18, 6), nullable=True)
+    comparison_value: Mapped[Decimal | None] = mapped_column(sa.Numeric(18, 6), nullable=True)
+    change_percent: Mapped[Decimal | None] = mapped_column(sa.Numeric(10, 3), nullable=True)
     unit: Mapped[str | None] = mapped_column(sa.String(30), nullable=True)
-    source_type: Mapped[str] = mapped_column(
-        sa.String(20), nullable=False
-    )  # rules, ai_assisted
+    source_type: Mapped[str] = mapped_column(sa.String(20), nullable=False)  # rules, ai_assisted
     caveat: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     engine_version: Mapped[str] = mapped_column(sa.String(30), nullable=False)
 
@@ -65,6 +53,4 @@ class Insight(Base):
 
     # Relationships
     organization: Mapped["Organization"] = relationship(back_populates="insights")
-    recommendations: Mapped[list["Recommendation"]] = relationship(
-        back_populates="insight"
-    )
+    recommendations: Mapped[list["Recommendation"]] = relationship(back_populates="insight")
