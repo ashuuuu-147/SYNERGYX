@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/app/app.tsx","./src/app/queryclient.ts","./src/app/router.tsx","./src/lib/apiclient.ts","./src/lib/authstorage.ts","./src/lib/querykeys.ts","./src/test/apiclient.test.ts","./src/test/setup.ts"],"version":"5.6.3"}
