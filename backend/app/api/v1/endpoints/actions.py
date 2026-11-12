@@ -76,3 +76,4 @@ def delete_action(
         org_id=current_user.organization_id,
         action_id=action_id,
     )
+

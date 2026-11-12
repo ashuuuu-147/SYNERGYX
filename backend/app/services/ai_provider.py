@@ -250,3 +250,4 @@ def get_explanation_provider(allow_external_ai: bool = False) -> tuple[Explanati
     if allow_external_ai and settings.AI_PROVIDER == "openai" and settings.OPENAI_API_KEY:
         return OpenAiExplanationProvider(), "openai"
     return RulesExplanationProvider(), "rules"
+

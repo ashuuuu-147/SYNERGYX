@@ -91,3 +91,4 @@ test.describe('SYNERGYX Critical User Journey', () => {
     await expect(page.getByRole('button', { name: /print \/ save pdf/i })).toBeVisible();
   });
 });
+

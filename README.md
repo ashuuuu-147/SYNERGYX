@@ -85,3 +85,45 @@ npm run dev
 2. **Tenant Isolation**: Every database query and storage access is strictly scoped to the authenticated user's `organization_id`.
 3. **No Dead Buttons or Fake Data**: Every UI control performs a real, implemented action or is disabled/omitted. No demo metrics are injected into real accounts.
 4. **Private Document Storage**: Uploaded bills are stored in private storage buckets; download access is via short-lived signed URLs after ownership validation.
+
+---
+
+## 6. Testing & Quality Gates
+
+Run all automated verification gates locally before submitting changes or deploying:
+
+### Backend Tests & Linting
+```bash
+cd backend
+.\.venv\Scripts\Activate.ps1
+# Run Ruff linting and format checks:
+ruff check app tests
+# Run full pytest test suite (63+ tests):
+pytest
+```
+
+### Frontend Tests, Typecheck & Production Build
+```bash
+cd frontend
+# Run TypeScript type check:
+npm run typecheck
+# Run Vitest test suite (48+ tests):
+npm run test
+# Run production Vite build:
+npm run build
+```
+
+---
+
+## 7. Production Deployment & Operations
+
+SYNERGYX is designed for zero-lock-in, secure cloud deployment across:
+* **Frontend**: Vercel SPA with deep-link rewrites (`frontend/vercel.json`).
+* **Backend**: Render Web Service with automated pre-deploy migrations (`render.yaml`).
+* **Database & Storage**: Supabase-hosted PostgreSQL with connection pooling and a private `utility-documents` storage bucket.
+
+For complete, step-by-step production deployment instructions, environment variable tables, live smoke-test checklists, and disaster recovery runbooks, refer to:
+* [DEPLOYMENT_CHECKLIST.md](file:///d:/SYNERGYX/DEPLOYMENT_CHECKLIST.md)
+* [render.yaml](file:///d:/SYNERGYX/render.yaml)
+* [vercel.json](file:///d:/SYNERGYX/frontend/vercel.json)
+

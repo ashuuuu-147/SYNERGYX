@@ -195,3 +195,4 @@ class ActionService:
 
         db.delete(action)
         db.commit()
+

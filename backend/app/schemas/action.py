@@ -52,3 +52,4 @@ class ActionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     recommendation_title: str | None = None
+

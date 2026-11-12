@@ -57,3 +57,4 @@ class InsightExplanation(BaseModel):
     caveat: Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] = Field(
         ..., description="Honest heuristic and data limitation disclosure"
     )
+
