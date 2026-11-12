@@ -21,6 +21,7 @@ import {
   IndianRupee,
   Layers,
   AlertTriangle,
+  Download,
   Info,
   TrendingUp,
 } from 'lucide-react';
@@ -36,6 +37,7 @@ import {
   MetricTypeFilter,
   ResourceTypeFilter,
 } from './analyticsApi';
+import { reportsApi } from '../reports/reportsApi';
 import { queryKeys } from '../../lib/queryKeys';
 
 const RESOURCE_COLORS = {
@@ -94,6 +96,24 @@ export const AnalyticsPage: React.FC = () => {
     }));
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      await reportsApi.downloadAnalyticsCsv({
+        from: fromMonth || undefined,
+        to: toMonth || undefined,
+        resource_type: resourceType,
+        metric,
+      });
+    } catch (err) {
+      console.error('Failed to export analytics CSV:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Prepare chart data objects
   const chartData = useMemo(() => {
     if (!analytics?.series) return [];
@@ -141,10 +161,21 @@ export const AnalyticsPage: React.FC = () => {
           </p>
         </div>
 
-        <Button variant="outline" size="sm" onClick={handleResetFilters}>
-          <RotateCcw size={14} />
-          <span>Reset Filters</span>
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            isLoading={isExporting}
+          >
+            <Download size={14} />
+            <span>Export CSV</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleResetFilters}>
+            <RotateCcw size={14} />
+            <span>Reset Filters</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filter Control Bar */}
