@@ -7,8 +7,10 @@ from app.api.v1.endpoints import (
     auth,
     dashboard,
     documents,
+    insights,
     organization,
     production_records,
+    recommendations,
     utility_records,
 )
 
@@ -21,3 +23,5 @@ api_v1_router.include_router(utility_records.router)
 api_v1_router.include_router(production_records.router)
 api_v1_router.include_router(dashboard.router)
 api_v1_router.include_router(analytics.router)
+api_v1_router.include_router(insights.router)
+api_v1_router.include_router(recommendations.router)
