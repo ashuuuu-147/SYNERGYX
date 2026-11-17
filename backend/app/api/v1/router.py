@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     organization,
     production_records,
     recommendations,
+    records_import,
     reports,
     utility_records,
 )
@@ -23,6 +24,7 @@ api_v1_router.include_router(organization.router, prefix="/organization", tags=[
 api_v1_router.include_router(documents.router)
 api_v1_router.include_router(utility_records.router)
 api_v1_router.include_router(production_records.router)
+api_v1_router.include_router(records_import.router)
 api_v1_router.include_router(dashboard.router)
 api_v1_router.include_router(analytics.router)
 api_v1_router.include_router(insights.router)
