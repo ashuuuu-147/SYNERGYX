@@ -5,6 +5,7 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 
 from app.api.v1.router import api_v1_router
 from app.core.config import settings
@@ -33,6 +34,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    # GZip compression for payloads > 1KB
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Request ID and timing middleware
     @app.middleware("http")
