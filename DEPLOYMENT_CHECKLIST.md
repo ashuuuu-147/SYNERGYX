@@ -69,9 +69,9 @@ flowchart LR
    - **Root Directory**: `backend`
    - **Runtime**: `Python`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Pre-Deploy Command**: `alembic upgrade head`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-   - **Plan**: `Starter` (or higher, with persistent resources).
+   - **Pre-Deploy Command**: *(Leave empty on Free tier; paid-only feature on Render)*
+   - **Start Command**: `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Plan / Instance Type**: `Free` ($0/mo).
 
 ### 4.2 Health Check Configuration
 Under **Advanced $\rightarrow$ Health Check Path**, set:
