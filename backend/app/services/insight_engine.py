@@ -50,6 +50,24 @@ from app.services.utility_service import normalize_to_first_of_month
 logger = logging.getLogger("synergyx.services.insights")
 
 
+def get_months_in_range(start_date: date, end_date: date) -> list[date]:
+    """Return a list of first-of-month dates between start_date and end_date (inclusive)."""
+    start_d = normalize_to_first_of_month(start_date)
+    end_d = normalize_to_first_of_month(end_date)
+    if start_d > end_d:
+        start_d, end_d = end_d, start_d
+
+    months: list[date] = []
+    current = start_d
+    while current <= end_d:
+        months.append(current)
+        if current.month == 12:
+            current = date(current.year + 1, 1, 1)
+        else:
+            current = date(current.year, current.month + 1, 1)
+    return months
+
+
 @dataclass
 class RecommendationCandidate:
     """Template for a recommendation generated from a rule."""
@@ -607,15 +625,80 @@ class InsightEngineService:
         return refreshed
 
     @staticmethod
+    def generate_insights_for_range(
+        db: Session,
+        org_id: uuid.UUID,
+        start_month_str: str,
+        end_month_str: str,
+    ) -> list[Insight]:
+        """Generate insights for every calendar month in the date range (inclusive)."""
+        clean_start = start_month_str.strip()
+        if len(clean_start) == 7:
+            clean_start += "-01"
+        clean_end = end_month_str.strip()
+        if len(clean_end) == 7:
+            clean_end += "-01"
+
+        try:
+            start_date = normalize_to_first_of_month(date.fromisoformat(clean_start))
+            end_date = normalize_to_first_of_month(date.fromisoformat(clean_end))
+        except Exception as err:
+            raise BadRequestError(
+                f"Invalid date range format '{start_month_str}' to '{end_month_str}'. Expected YYYY-MM.",
+                code="INVALID_DATE_RANGE",
+            ) from err
+
+        months = get_months_in_range(start_date, end_date)
+        all_insights: list[Insight] = []
+
+        for m in months:
+            m_query = m.strftime("%Y-%m")
+            insights = InsightEngineService.generate_insights_for_month(
+                db=db,
+                org_id=org_id,
+                month_query=m_query,
+            )
+            all_insights.extend(insights)
+
+        return all_insights
+
+    @staticmethod
     def list_insights(
         db: Session,
         org_id: uuid.UUID,
         month_query: str | None = None,
+        start_month: str | None = None,
+        end_month: str | None = None,
     ) -> list[Insight]:
-        """List saved insights filtered by organization and optional month."""
+        """List saved insights filtered by organization and optional month or date range."""
         stmt = select(Insight).where(Insight.organization_id == org_id)
 
-        if month_query:
+        if start_month or end_month:
+            if start_month:
+                clean_s = start_month.strip()
+                if len(clean_s) == 7:
+                    clean_s += "-01"
+                try:
+                    s_date = normalize_to_first_of_month(date.fromisoformat(clean_s))
+                    stmt = stmt.where(Insight.period_month >= s_date)
+                except Exception as err:
+                    raise BadRequestError(
+                        f"Invalid start_month '{start_month}'. Expected YYYY-MM.",
+                        code="INVALID_MONTH_FORMAT",
+                    ) from err
+            if end_month:
+                clean_e = end_month.strip()
+                if len(clean_e) == 7:
+                    clean_e += "-01"
+                try:
+                    e_date = normalize_to_first_of_month(date.fromisoformat(clean_e))
+                    stmt = stmt.where(Insight.period_month <= e_date)
+                except Exception as err:
+                    raise BadRequestError(
+                        f"Invalid end_month '{end_month}'. Expected YYYY-MM.",
+                        code="INVALID_MONTH_FORMAT",
+                    ) from err
+        elif month_query:
             try:
                 clean = month_query.strip()
                 if len(clean) == 7:

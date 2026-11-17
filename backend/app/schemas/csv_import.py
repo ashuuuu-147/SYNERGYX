@@ -31,3 +31,4 @@ class CsvImportResponse(BaseModel):
     production_records_created: int
     production_records_updated: int
     details: list[CsvImportDetail]
+

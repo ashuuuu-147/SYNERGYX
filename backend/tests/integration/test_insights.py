@@ -257,3 +257,70 @@ def test_recommendation_accept_dismiss_and_action_creation(insights_test_env) ->
     res_dismiss = client.post(f"/api/v1/recommendations/{other_rec_id}/dismiss", headers=headers)
     assert res_dismiss.status_code == 200
     assert res_dismiss.json()["status"] == "dismissed"
+
+
+def test_generate_and_list_insights_for_range(insights_test_env):
+    """Verify generating and listing insights across a multi-month range."""
+    session_factory = insights_test_env["session_factory"]
+    client = TestClient(app)
+
+    with session_factory() as db:
+        reg = AuthService.register_user(
+            db=db,
+            request=RegisterRequest(
+                organization_name="Range Textiles",
+                industry="textile",
+                production_unit="kg",
+                full_name="Anil Kumar",
+                email="anil.range@textile.com",
+                password="SecurePassword123!",
+                location="Surat",
+                country_code="IN",
+            ),
+        )
+        token = reg.access_token
+        org_id = reg.user.organization_id
+
+        # Insert utility records for January, February, and March with varying intensities
+        records = [
+            (date(2026, 1, 1), Decimal("5000"), Decimal("40000"), Decimal("10000")),
+            (date(2026, 2, 1), Decimal("7000"), Decimal("56000"), Decimal("10000")),  # +40% increase -> triggers intensity up
+            (date(2026, 3, 1), Decimal("4000"), Decimal("32000"), Decimal("10000")),  # -42% reduction -> triggers observed improvement
+        ]
+        for m, qty, bill, prod in records:
+            db.add(
+                UtilityRecord(
+                    organization_id=org_id,
+                    resource_type="electricity",
+                    period_month=m,
+                    quantity=qty,
+                    unit="kWh",
+                    amount_inr=bill,
+                )
+            )
+            db.add(
+                ProductionRecord(
+                    organization_id=org_id,
+                    period_month=m,
+                    quantity=prod,
+                    unit="kg",
+                )
+            )
+        db.commit()
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Generate insights across Jan 2026 to Mar 2026
+    res = client.post("/api/v1/insights/generate?start_month=2026-01&end_month=2026-03", headers=headers)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert data["insights_generated_count"] >= 3
+
+    # List insights filtered by range
+    res_list = client.get("/api/v1/insights?start_month=2026-01&end_month=2026-02", headers=headers)
+    assert res_list.status_code == 200
+    list_items = res_list.json()
+    # Check that months returned are only in 2026-01 or 2026-02
+    for item in list_items:
+        assert item["period_month"] in ("2026-01-01", "2026-02-01")
+

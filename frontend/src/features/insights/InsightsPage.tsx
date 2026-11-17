@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles,
   Calendar,
@@ -23,13 +23,20 @@ import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingSkeleton } from '../../components/ui/LoadingSkeleton';
 import { insightsApi, InsightResponse, InsightSeverity } from './insightsApi';
-import { queryKeys } from '../../lib/queryKeys';
 
 export const InsightsPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const [mode, setMode] = useState<'single' | 'range'>('single');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [startMonth, setStartMonth] = useState<string>('');
+  const [endMonth, setEndMonth] = useState<string>('');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+
+  const queryParams =
+    mode === 'range' && (startMonth || endMonth)
+      ? { start_month: startMonth || undefined, end_month: endMonth || undefined }
+      : selectedMonth || undefined;
 
   const {
     data: insights,
@@ -38,18 +45,25 @@ export const InsightsPage: React.FC = () => {
     error,
     refetch,
   } = useQuery<InsightResponse[]>({
-    queryKey: queryKeys.insights.list(selectedMonth || undefined),
-    queryFn: () => insightsApi.listInsights(selectedMonth || undefined),
+    queryKey: ['insights', 'list', mode === 'range' ? { startMonth, endMonth } : { selectedMonth }],
+    queryFn: () => insightsApi.listInsights(queryParams),
   });
 
   const generateMutation = useMutation({
-    mutationFn: (targetMonth: string) => insightsApi.generateInsights(targetMonth),
+    mutationFn: (params: string | { start_month: string; end_month: string }) =>
+      insightsApi.generateInsights(params),
     onSuccess: (data) => {
-      setActionMessage(`Generated ${data.insights_generated_count} insights for ${data.month}.`);
+      if (mode === 'range' && startMonth && endMonth) {
+        setActionMessage(
+          `Generated ${data.insights_generated_count} insights and ${data.recommendations_generated_count} recommendations from ${startMonth} to ${endMonth}.`
+        );
+      } else {
+        setActionMessage(`Generated ${data.insights_generated_count} insights for ${data.month}.`);
+      }
       queryClient.invalidateQueries({ queryKey: ['insights'] });
       queryClient.invalidateQueries({ queryKey: ['recommendations'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      setTimeout(() => setActionMessage(null), 4000);
+      setTimeout(() => setActionMessage(null), 5000);
     },
     onError: (err: Error) => {
       setActionMessage(`Failed to generate insights: ${err.message}`);
@@ -58,19 +72,27 @@ export const InsightsPage: React.FC = () => {
   });
 
   const handleGenerate = () => {
-    // Determine effective target month
-    let target = selectedMonth;
-    if (!target) {
-      if (insights && insights.length > 0) {
-        target = insights[0].period_month.substring(0, 7);
-      } else {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        target = `${year}-${month}`;
+    if (mode === 'range') {
+      if (!startMonth || !endMonth) {
+        setActionMessage('Please select both Start Month and End Month for range analysis.');
+        setTimeout(() => setActionMessage(null), 4000);
+        return;
       }
+      generateMutation.mutate({ start_month: startMonth, end_month: endMonth });
+    } else {
+      let target = selectedMonth;
+      if (!target) {
+        if (insights && insights.length > 0) {
+          target = insights[0].period_month.substring(0, 7);
+        } else {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          target = `${year}-${month}`;
+        }
+      }
+      generateMutation.mutate(target);
     }
-    generateMutation.mutate(target);
   };
 
   const filteredInsights = (insights || []).filter((i) => {
@@ -112,7 +134,7 @@ export const InsightsPage: React.FC = () => {
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 700 }}>Operational Insights</h2>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-            Evidence-based findings evaluated by deterministic rules and non-identifying AI assistance
+            Evidence-based findings evaluated by deterministic rules across single months or custom month ranges
           </p>
         </div>
 
@@ -127,9 +149,16 @@ export const InsightsPage: React.FC = () => {
             size="sm"
             onClick={handleGenerate}
             disabled={generateMutation.isPending}
+            isLoading={generateMutation.isPending}
           >
             <Sparkles size={16} />
-            <span>{generateMutation.isPending ? 'Analyzing Data...' : 'Generate Insights'}</span>
+            <span>
+              {generateMutation.isPending
+                ? 'Analyzing...'
+                : mode === 'range' && startMonth && endMonth
+                ? `Generate Range (${startMonth} to ${endMonth})`
+                : 'Generate Insights'}
+            </span>
           </Button>
         </div>
       </div>
@@ -142,36 +171,125 @@ export const InsightsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Filter Bar */}
+      {/* Filter Bar with Mode Switch */}
       <Card style={{ padding: 'var(--space-4)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Month Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label htmlFor="insight-month-filter" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                Billing Month:
-              </label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-card)', padding: '4px 8px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
-                <Calendar size={14} color="var(--text-secondary)" />
-                <input
-                  id="insight-month-filter"
-                  aria-label="Filter insights by month"
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
-                />
-              </div>
-              {selectedMonth && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedMonth('')}
-                  style={{ fontSize: '12px', color: 'var(--brand-primary)', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Clear
-                </button>
-              )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            {/* Mode Switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg-main)', padding: '3px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+              <button
+                type="button"
+                onClick={() => setMode('single')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: mode === 'single' ? 'var(--bg-card)' : 'transparent',
+                  color: mode === 'single' ? 'var(--primary-600)' : 'var(--text-secondary)',
+                  boxShadow: mode === 'single' ? 'var(--shadow-xs)' : 'none',
+                }}
+              >
+                Single Month
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('range')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: mode === 'range' ? 'var(--bg-card)' : 'transparent',
+                  color: mode === 'range' ? 'var(--primary-600)' : 'var(--text-secondary)',
+                  boxShadow: mode === 'range' ? 'var(--shadow-xs)' : 'none',
+                }}
+              >
+                Month Range
+              </button>
             </div>
+
+            {/* Month Filter Inputs */}
+            {mode === 'single' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label htmlFor="insight-month-filter" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Billing Month:
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-card)', padding: '4px 8px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                  <Calendar size={14} color="var(--text-secondary)" />
+                  <input
+                    id="insight-month-filter"
+                    aria-label="Filter insights by month"
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
+                  />
+                </div>
+                {selectedMonth && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMonth('')}
+                    style={{ fontSize: '12px', color: 'var(--brand-primary)', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label htmlFor="insight-start-month" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    From:
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-card)', padding: '4px 8px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                    <Calendar size={14} color="var(--text-secondary)" />
+                    <input
+                      id="insight-start-month"
+                      aria-label="Start month"
+                      type="month"
+                      value={startMonth}
+                      onChange={(e) => setStartMonth(e.target.value)}
+                      style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label htmlFor="insight-end-month" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    To:
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-card)', padding: '4px 8px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                    <Calendar size={14} color="var(--text-secondary)" />
+                    <input
+                      id="insight-end-month"
+                      aria-label="End month"
+                      type="month"
+                      value={endMonth}
+                      onChange={(e) => setEndMonth(e.target.value)}
+                      style={{ border: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+
+                {(startMonth || endMonth) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStartMonth('');
+                      setEndMonth('');
+                    }}
+                    style={{ fontSize: '12px', color: 'var(--brand-primary)', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear Range
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Severity Filter */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -202,9 +320,9 @@ export const InsightsPage: React.FC = () => {
             </div>
           </div>
 
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Showing {filteredInsights.length} of {insights?.length || 0} insights
-          </span>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Showing <strong>{filteredInsights.length}</strong> findings
+          </div>
         </div>
       </Card>
 
@@ -233,8 +351,10 @@ export const InsightsPage: React.FC = () => {
                 icon={<Sparkles size={28} />}
                 title="No Insights Found"
                 description={
-                  selectedMonth
-                    ? `No insights have been calculated for ${selectedMonth}. Click 'Generate Insights' above to run analysis.`
+                  mode === 'range' && (startMonth || endMonth)
+                    ? `No insights calculated for ${startMonth || '...'} to ${endMonth || '...'}. Click 'Generate Insights' above to run analysis across this range.`
+                    : selectedMonth
+                    ? `No insights calculated for ${selectedMonth}. Click 'Generate Insights' above to run analysis.`
                     : "No insights have been generated yet. Enter monthly data in Records and click 'Generate Insights' to run deterministic anomaly checks."
                 }
               />
@@ -267,7 +387,16 @@ export const InsightsPage: React.FC = () => {
                         </span>
                       )}
 
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor: 'var(--brand-surface)',
+                          color: 'var(--brand-primary)',
+                        }}
+                      >
                         Month: {insight.period_month.substring(0, 7)}
                       </span>
                     </div>
@@ -301,36 +430,35 @@ export const InsightsPage: React.FC = () => {
                         <div>
                           <span style={{ color: 'var(--text-secondary)' }}>Change: </span>
                           <strong style={{ color: Number(insight.change_percent) > 0 ? 'var(--danger)' : 'var(--success)' }}>
-                            {Number(insight.change_percent) > 0 ? `+${Number(insight.change_percent).toFixed(1)}%` : `${Number(insight.change_percent).toFixed(1)}%`}
+                            {Number(insight.change_percent) > 0 ? '+' : ''}{Number(insight.change_percent).toFixed(1)}%
                           </strong>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Caveat and Recommendations Link Footer */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-default)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '75%' }}>
-                      <Info size={14} style={{ flexShrink: 0 }} />
-                      <span>{insight.caveat || 'Rule heuristic evaluation.'}</span>
+                  {/* Caveat */}
+                  {insight.caveat && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '14px' }}>
+                      <Info size={14} />
+                      <span>{insight.caveat}</span>
                     </div>
+                  )}
 
-                    <Link
-                      to="/app/recommendations"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: 'var(--brand-primary)',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      <span>View Recommendations</span>
-                      <ArrowRight size={14} />
-                    </Link>
-                  </div>
+                  {/* Recommendations Callout */}
+                  {insight.recommendations && insight.recommendations.length > 0 && (
+                    <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        <strong>{insight.recommendations.length} Actionable Recommendation</strong> available in Recommendations tab.
+                      </div>
+                      <Link to="/app/recommendations" style={{ textDecoration: 'none' }}>
+                        <Button variant="ghost" size="sm" style={{ gap: '4px', color: 'var(--brand-primary)' }}>
+                          <span>View Plan</span>
+                          <ArrowRight size={14} />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>
