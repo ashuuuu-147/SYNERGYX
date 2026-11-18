@@ -36,13 +36,21 @@ export const AppShell: React.FC = () => {
             position: 'fixed',
             inset: 0,
             zIndex: 50,
-            backgroundColor: 'rgba(41, 36, 59, 0.4)',
+            backgroundColor: 'rgba(41, 36, 59, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
           }}
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            style={{ width: '260px', height: '100%', backgroundColor: 'var(--bg-sidebar)' }}
+            style={{
+              width: '260px',
+              height: '100%',
+              backgroundColor: 'var(--bg-sidebar)',
+              boxShadow: 'var(--shadow-hover)',
+              animation: 'pageEnter 220ms var(--ease-smooth)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <Sidebar onItemClick={() => setIsMobileMenuOpen(false)} />
@@ -66,10 +74,11 @@ export const AppShell: React.FC = () => {
             boxSizing: 'border-box',
           }}
         >
-          <Outlet />
+          <div key={location.pathname} className="page-enter-transition">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
 };
-

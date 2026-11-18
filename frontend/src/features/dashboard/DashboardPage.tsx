@@ -167,7 +167,7 @@ export const DashboardPage: React.FC = () => {
           unit={summary?.electricity.unit || 'kWh'}
           changePercent={summary?.electricity.change_percent != null ? Number(summary.electricity.change_percent) : null}
           subtitle={summary?.electricity.quantity == null ? 'No record for this month' : undefined}
-          icon={<Zap size={20} />}
+          icon={<Zap size={20} color="var(--resource-electricity)" />}
         />
         <KpiCard
           title="Water Used"
@@ -175,7 +175,7 @@ export const DashboardPage: React.FC = () => {
           unit={summary?.water.unit || 'm³'}
           changePercent={summary?.water.change_percent != null ? Number(summary.water.change_percent) : null}
           subtitle={summary?.water.quantity == null ? 'No record for this month' : undefined}
-          icon={<Droplets size={20} />}
+          icon={<Droplets size={20} color="var(--resource-water)" />}
         />
         <KpiCard
           title="Fuel Used"
@@ -183,7 +183,7 @@ export const DashboardPage: React.FC = () => {
           unit={summary?.fuel.unit || 'L'}
           changePercent={summary?.fuel.change_percent != null ? Number(summary.fuel.change_percent) : null}
           subtitle={summary?.fuel.quantity == null ? 'No record for this month' : undefined}
-          icon={<Flame size={20} />}
+          icon={<Flame size={20} color="var(--resource-fuel)" />}
         />
         <KpiCard
           title="Utility Spend"
@@ -196,14 +196,14 @@ export const DashboardPage: React.FC = () => {
               ? `Partial (${summary.cost_data_coverage})`
               : 'Complete cost coverage'
           }
-          icon={<IndianRupee size={20} />}
+          icon={<IndianRupee size={20} color="var(--brand-primary)" />}
         />
         <KpiCard
           title="Production Output"
           value={summary?.production_quantity != null ? Number(summary.production_quantity).toLocaleString() : null}
           unit={summary?.production_unit}
           subtitle={summary?.production_quantity == null ? 'No production entered' : undefined}
-          icon={<Layers size={20} />}
+          icon={<Layers size={20} color="var(--resource-production)" />}
         />
         <KpiCard
           title="Electricity Intensity"
@@ -217,7 +217,7 @@ export const DashboardPage: React.FC = () => {
                 : 'No electricity record'
               : undefined
           }
-          icon={<TrendingUp size={20} />}
+          icon={<TrendingUp size={20} color="var(--brand-primary)" />}
         />
       </div>
 

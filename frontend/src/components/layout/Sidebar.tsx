@@ -29,11 +29,10 @@ const navItems = [
 export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   return (
     <aside
+      className="glass-sidebar"
       style={{
         width: '248px',
         height: '100vh',
-        backgroundColor: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border-default)',
         display: 'flex',
         flexDirection: 'column',
         position: 'sticky',
@@ -49,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          borderBottom: '1px solid var(--border-default)',
+          borderBottom: '1px solid var(--border-glass)',
         }}
       >
         <Link
@@ -57,14 +56,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
             textDecoration: 'none',
           }}
         >
           <div
             style={{
-              width: '32px',
-              height: '32px',
+              width: '34px',
+              height: '34px',
               borderRadius: 'var(--radius-sm)',
               background: 'var(--gradient-brand)',
               display: 'flex',
@@ -72,7 +71,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
               justifyContent: 'center',
               color: 'var(--text-inverse)',
               fontWeight: 800,
-              fontSize: '16px',
+              fontSize: '15px',
+              boxShadow: 'var(--glow-sm)',
             }}
           >
             SX
@@ -118,14 +118,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                 fontSize: '14px',
                 fontWeight: isActive ? 600 : 500,
                 color: isActive ? 'var(--brand-deep)' : 'var(--text-secondary)',
-                backgroundColor: isActive ? 'var(--brand-soft)' : 'transparent',
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(124, 92, 252, 0.12) 0%, rgba(180, 165, 223, 0.08) 100%)'
+                  : 'transparent',
                 borderLeft: isActive ? '3px solid var(--brand-primary)' : '3px solid transparent',
                 transition: 'all var(--duration-fast) var(--ease-standard)',
                 textDecoration: 'none',
               })}
             >
-              <Icon size={18} />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    size={18}
+                    style={{
+                      color: isActive ? 'var(--brand-primary)' : 'inherit',
+                      transition: 'color var(--duration-fast) var(--ease-standard)',
+                    }}
+                  />
+                  <span>{item.label}</span>
+                </>
+              )}
             </NavLink>
           );
         })}
@@ -135,14 +147,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
       <div
         style={{
           padding: 'var(--space-4) var(--space-6)',
-          borderTop: '1px solid var(--border-default)',
+          borderTop: '1px solid var(--border-glass)',
           fontSize: '11px',
           color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <span>SYNERGYX MVP v1.0</span>
+        <span>SYNERGYX Platform</span>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '10px',
+            fontWeight: 600,
+            padding: '2px 6px',
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--brand-soft)',
+            color: 'var(--brand-primary)',
+          }}
+        >
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: 'var(--success)',
+            }}
+          />
+          Live
+        </span>
       </div>
     </aside>
   );
 };
-

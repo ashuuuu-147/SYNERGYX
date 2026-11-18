@@ -23,12 +23,36 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   const hasValue = value !== null && value !== undefined && value !== '';
 
   return (
-    <Card style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <Card
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
           {title}
         </span>
-        {icon && <div style={{ color: 'var(--brand-primary)' }}>{icon}</div>}
+        {icon && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--brand-surface)',
+              color: 'var(--brand-primary)',
+              border: '1px solid var(--border-default)',
+            }}
+          >
+            {icon}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -36,25 +60,29 @@ export const KpiCard: React.FC<KpiCardProps> = ({
           className="tabular-nums"
           style={{
             fontSize: '32px',
-            fontWeight: 700,
+            fontWeight: 800,
             fontFamily: 'var(--font-heading)',
             color: hasValue ? 'var(--text-primary)' : 'var(--text-disabled)',
+            letterSpacing: '-0.5px',
           }}
         >
           {hasValue ? value : '—'}
         </span>
         {hasValue && unit && (
-          <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>
             {unit}
           </span>
         )}
       </div>
 
       {changePercent !== null && changePercent !== undefined ? (
-        <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span
             style={{
-              fontWeight: 600,
+              fontWeight: 700,
+              padding: '2px 6px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: changePercent <= 0 ? 'var(--success-bg)' : 'var(--danger-bg)',
               color: changePercent <= 0 ? 'var(--success)' : 'var(--danger)',
             }}
           >
@@ -70,4 +98,3 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     </Card>
   );
 };
-

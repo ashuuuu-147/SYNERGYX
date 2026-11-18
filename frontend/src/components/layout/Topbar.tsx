@@ -18,11 +18,10 @@ export const Topbar: React.FC<TopbarProps> = ({ title, onMenuToggle }) => {
 
   return (
     <header
+      className="glass-topbar"
       style={{
         height: '72px',
         padding: '0 var(--space-8)',
-        backgroundColor: 'var(--bg-card)',
-        borderBottom: '1px solid var(--border-default)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -36,6 +35,7 @@ export const Topbar: React.FC<TopbarProps> = ({ title, onMenuToggle }) => {
           <button
             onClick={onMenuToggle}
             aria-label="Toggle mobile navigation menu"
+            className="btn-animated btn-animated-ghost"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -48,44 +48,57 @@ export const Topbar: React.FC<TopbarProps> = ({ title, onMenuToggle }) => {
             <Menu size={22} />
           </button>
         )}
-        <h1 style={{ fontSize: '20px', fontWeight: 700 }}>{title}</h1>
+        <h1
+          style={{
+            fontSize: '20px',
+            fontWeight: 800,
+            letterSpacing: '-0.2px',
+            color: 'var(--brand-deep)',
+          }}
+        >
+          {title}
+        </h1>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Link
           to="/app/settings"
           aria-label="Open settings"
+          className="btn-animated btn-animated-ghost"
           style={{
             padding: '8px',
             color: 'var(--text-secondary)',
             display: 'flex',
             alignItems: 'center',
-            borderRadius: 'var(--radius-sm)',
+            justifyContent: 'center',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-default)',
+            background: 'var(--bg-card)',
           }}
         >
-          <SettingsIcon size={20} />
+          <SettingsIcon size={18} />
         </Link>
         <button
           onClick={handleLogout}
           aria-label="Log out"
+          className="btn-animated btn-animated-outline"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '8px 12px',
+            padding: '8px 14px',
             color: 'var(--text-secondary)',
             fontSize: '13px',
-            fontWeight: 500,
+            fontWeight: 600,
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-default)',
-            backgroundColor: 'var(--bg-main)',
+            backgroundColor: 'var(--bg-card)',
           }}
         >
-          <LogOut size={16} />
+          <LogOut size={15} />
           <span>Log out</span>
         </button>
       </div>
     </header>
   );
 };
-

@@ -15,6 +15,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       disabled,
       style,
+      className = '',
       type = 'button',
       ...props
     },
@@ -27,22 +28,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       gap: '8px',
       borderRadius: 'var(--radius-md)',
       fontWeight: 600,
-      transition: 'all var(--duration-fast) var(--ease-standard)',
       cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
       opacity: disabled || isLoading ? 0.65 : 1,
       minHeight: size === 'sm' ? '36px' : size === 'lg' ? '50px' : '44px',
-      padding: size === 'sm' ? '0 12px' : size === 'lg' ? '0 24px' : '0 18px',
+      padding: size === 'sm' ? '0 14px' : size === 'lg' ? '0 24px' : '0 18px',
       fontSize: size === 'sm' ? '13px' : size === 'lg' ? '16px' : '14px',
       border: '1px solid transparent',
       textDecoration: 'none',
       userSelect: 'none',
+      position: 'relative',
     };
 
     let variantStyle: React.CSSProperties = {};
     if (variant === 'primary') {
       variantStyle = {
-        background: 'var(--brand-primary)',
+        background: 'var(--gradient-brand)',
         color: 'var(--text-inverse)',
+        boxShadow: '0 2px 8px rgba(124, 92, 252, 0.22)',
       };
     } else if (variant === 'secondary') {
       variantStyle = {
@@ -67,11 +69,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       };
     }
 
+    const buttonClass = `btn-animated btn-animated-${variant} ${className}`.trim();
+
     return (
       <button
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
+        className={buttonClass}
         style={{ ...baseStyle, ...variantStyle, ...style }}
         {...props}
       >
@@ -96,4 +101,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
-
