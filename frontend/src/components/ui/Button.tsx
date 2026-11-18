@@ -44,12 +44,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variantStyle = {
         background: 'var(--gradient-brand)',
         color: 'var(--text-inverse)',
-        boxShadow: '0 2px 8px rgba(124, 92, 252, 0.22)',
+        boxShadow: '0 2px 8px rgba(63, 51, 77, 0.25)',
       };
     } else if (variant === 'secondary') {
       variantStyle = {
         background: 'var(--brand-soft)',
         color: 'var(--brand-deep)',
+        borderColor: 'var(--border-default)',
       };
     } else if (variant === 'outline') {
       variantStyle = {

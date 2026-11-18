@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                 fontWeight: isActive ? 600 : 500,
                 color: isActive ? 'var(--brand-deep)' : 'var(--text-secondary)',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(124, 92, 252, 0.12) 0%, rgba(180, 165, 223, 0.08) 100%)'
+                  ? 'linear-gradient(135deg, rgba(234, 240, 206, 0.75) 0%, rgba(192, 197, 193, 0.3) 100%)'
                   : 'transparent',
                 borderLeft: isActive ? '3px solid var(--brand-primary)' : '3px solid transparent',
                 transition: 'all var(--duration-fast) var(--ease-standard)',
