@@ -50,15 +50,21 @@ export const InsightsPage: React.FC = () => {
   });
 
   const generateMutation = useMutation({
-    mutationFn: (params: string | { start_month: string; end_month: string }) =>
+    mutationFn: (params?: string | { start_month?: string; end_month?: string; month?: string }) =>
       insightsApi.generateInsights(params),
     onSuccess: (data) => {
       if (mode === 'range' && startMonth && endMonth) {
         setActionMessage(
-          `Generated ${data.insights_generated_count} insights and ${data.recommendations_generated_count} recommendations from ${startMonth} to ${endMonth}.`
+          `Generated ${data.insights_generated_count} findings and ${data.recommendations_generated_count} recommendations from ${startMonth} to ${endMonth}.`
+        );
+      } else if (selectedMonth) {
+        setActionMessage(
+          `Generated ${data.insights_generated_count} findings and ${data.recommendations_generated_count} recommendations for ${data.month.substring(0, 7)}.`
         );
       } else {
-        setActionMessage(`Generated ${data.insights_generated_count} insights for ${data.month}.`);
+        setActionMessage(
+          `Generated ${data.insights_generated_count} findings and ${data.recommendations_generated_count} recommendations across all recorded data.`
+        );
       }
       queryClient.invalidateQueries({ queryKey: ['insights'] });
       queryClient.invalidateQueries({ queryKey: ['recommendations'] });
@@ -73,25 +79,17 @@ export const InsightsPage: React.FC = () => {
 
   const handleGenerate = () => {
     if (mode === 'range') {
-      if (!startMonth || !endMonth) {
-        setActionMessage('Please select both Start Month and End Month for range analysis.');
-        setTimeout(() => setActionMessage(null), 4000);
-        return;
+      if (startMonth && endMonth) {
+        generateMutation.mutate({ start_month: startMonth, end_month: endMonth });
+      } else {
+        generateMutation.mutate({});
       }
-      generateMutation.mutate({ start_month: startMonth, end_month: endMonth });
     } else {
-      let target = selectedMonth;
-      if (!target) {
-        if (insights && insights.length > 0) {
-          target = insights[0].period_month.substring(0, 7);
-        } else {
-          const today = new Date();
-          const year = today.getFullYear();
-          const month = String(today.getMonth() + 1).padStart(2, '0');
-          target = `${year}-${month}`;
-        }
+      if (selectedMonth) {
+        generateMutation.mutate(selectedMonth);
+      } else {
+        generateMutation.mutate({});
       }
-      generateMutation.mutate(target);
     }
   };
 
@@ -117,13 +115,13 @@ export const InsightsPage: React.FC = () => {
   const getResourceIcon = (resType: string | null) => {
     switch (resType) {
       case 'electricity':
-        return <Zap size={16} color="#5b4cdb" />;
+        return <Zap size={16} color="var(--resource-electricity)" />;
       case 'water':
-        return <Droplets size={16} color="#0ea5e9" />;
+        return <Droplets size={16} color="var(--resource-water)" />;
       case 'fuel':
-        return <Flame size={16} color="#f59e0b" />;
+        return <Flame size={16} color="var(--resource-fuel)" />;
       default:
-        return <Layers size={16} color="var(--text-secondary)" />;
+        return <Layers size={16} color="var(--brand-primary)" />;
     }
   };
 

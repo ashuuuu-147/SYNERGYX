@@ -324,3 +324,74 @@ def test_generate_and_list_insights_for_range(insights_test_env):
     for item in list_items:
         assert item["period_month"] in ("2026-01-01", "2026-02-01")
 
+
+def test_auto_discover_recorded_months_and_stable_insights(insights_test_env) -> None:
+    session_factory = insights_test_env["session_factory"]
+    client = TestClient(app)
+
+    with session_factory() as db:
+        reg = AuthService.register_user(
+            db=db,
+            request=RegisterRequest(
+                organization_name="Stable Mills",
+                industry="textile",
+                production_unit="kg",
+                full_name="Rajesh Patel",
+                email="rajesh.stable@mills.com",
+                password="SecurePassword123!",
+                location="Ahmedabad",
+                country_code="IN",
+            ),
+        )
+        token = reg.access_token
+        org_id = reg.user.organization_id
+
+        # Insert 5 months matching the user's dummy CSV data with ~1% minor variance
+        records = [
+            (date(2026, 1, 1), Decimal("4820"), Decimal("43380"), Decimal("12400")),
+            (date(2026, 2, 1), Decimal("4560"), Decimal("41040"), Decimal("11850")),
+            (date(2026, 3, 1), Decimal("5190"), Decimal("46710"), Decimal("13200")),
+            (date(2026, 4, 1), Decimal("5480"), Decimal("49320"), Decimal("13950")),
+            (date(2026, 5, 1), Decimal("5310"), Decimal("47790"), Decimal("13600")),
+        ]
+        for m, qty, bill, prod in records:
+            db.add(
+                UtilityRecord(
+                    organization_id=org_id,
+                    resource_type="electricity",
+                    period_month=m,
+                    quantity=qty,
+                    unit="kWh",
+                    amount_inr=bill,
+                )
+            )
+            db.add(
+                ProductionRecord(
+                    organization_id=org_id,
+                    period_month=m,
+                    quantity=prod,
+                    unit="kg",
+                )
+            )
+        db.commit()
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 1. Call generate with NO query params (auto-discover all recorded months)
+    res = client.post("/api/v1/insights/generate", headers=headers)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert data["insights_generated_count"] >= 5  # Every single month produced insights!
+
+    # 2. List insights across all months
+    res_list = client.get("/api/v1/insights", headers=headers)
+    assert res_list.status_code == 200
+    all_findings = res_list.json()
+    assert len(all_findings) >= 5
+
+    # Check metric codes: Jan has baseline readiness, Feb-May have stable resource intensity
+    codes = [f["metric_code"] for f in all_findings]
+    assert "data_readiness_insufficient_history" in codes
+    assert "stable_resource_intensity" in codes
+
+

@@ -378,71 +378,190 @@ class InsightEngineService:
             if (
                 water_res
                 and water_res.intensity_change_pct is not None
-                and water_res.intensity_change_pct >= WATER_INTENSITY_UP_THRESHOLD
             ):
-                pct = round(water_res.intensity_change_pct, 1)
-                sev = "high" if water_res.intensity_change_pct >= HIGH_SEVERITY_INTENSITY_THRESHOLD else "medium"
-                candidates.append(
-                    InsightCandidate(
-                        metric_code="water_intensity_up",
-                        resource_type="water",
-                        severity=sev,
-                        title=f"Water Intensity Increased by {pct}%",
-                        summary=(
-                            f"Water consumption per unit of production rose by {pct}% vs "
-                            f"previous month ({water_res.prev_intensity:.6f} to {water_res.intensity:.6f} m³/{prod_unit})."
-                        ),
-                        observed_value=water_res.intensity,
-                        comparison_value=water_res.prev_intensity,
-                        change_percent=water_res.intensity_change_pct,
-                        unit=f"m³/{prod_unit}",
-                        caveat=CAVEAT_HEURISTIC,
-                        recommendation=RecommendationCandidate(
-                            title="Inspect Visible Leaks & Review Cleaning Cycles",
-                            description="Inspect visible leaks and review cleaning / rinsing cycles. Record water use before and after the change where applicable.",
-                            steps_json=[
-                                "Inspect valves, pipelines, and taps across production floors for leaks.",
-                                "Review washing and rinsing schedules for optimization opportunities.",
-                                "Consider sub-metering high-consumption washing areas.",
-                            ],
-                            priority="medium",
-                        ),
+                if water_res.intensity_change_pct >= WATER_INTENSITY_UP_THRESHOLD:
+                    pct = round(water_res.intensity_change_pct, 1)
+                    sev = "high" if water_res.intensity_change_pct >= HIGH_SEVERITY_INTENSITY_THRESHOLD else "medium"
+                    candidates.append(
+                        InsightCandidate(
+                            metric_code="water_intensity_up",
+                            resource_type="water",
+                            severity=sev,
+                            title=f"Water Intensity Increased by {pct}%",
+                            summary=(
+                                f"Water consumption per unit of production rose by {pct}% vs "
+                                f"previous month ({water_res.prev_intensity:.6f} to {water_res.intensity:.6f} m³/{prod_unit})."
+                            ),
+                            observed_value=water_res.intensity,
+                            comparison_value=water_res.prev_intensity,
+                            change_percent=water_res.intensity_change_pct,
+                            unit=f"m³/{prod_unit}",
+                            caveat=CAVEAT_HEURISTIC,
+                            recommendation=RecommendationCandidate(
+                                title="Inspect Visible Leaks & Review Cleaning Cycles",
+                                description="Inspect visible leaks and review cleaning / rinsing cycles. Record water use before and after the change where applicable.",
+                                steps_json=[
+                                    "Inspect valves, pipelines, and taps across production floors for leaks.",
+                                    "Review washing and rinsing schedules for optimization opportunities.",
+                                    "Consider sub-metering high-consumption washing areas.",
+                                ],
+                                priority="medium",
+                            ),
+                        )
                     )
-                )
+                # Rule F2: Water Intensity Down (<= -5%, Observed Improvement)
+                elif water_res.intensity_change_pct <= Decimal("-5.0"):
+                    pct = abs(round(water_res.intensity_change_pct, 1))
+                    saving_str = (
+                        f" (Estimated potential saving: ₹{water_res.potential_saving_inr:,.0f})"
+                        if water_res.potential_saving_inr is not None
+                        else ""
+                    )
+                    candidates.append(
+                        InsightCandidate(
+                            metric_code="water_intensity_down",
+                            resource_type="water",
+                            severity="low",
+                            title=f"Observed Water Reduction (-{pct}%)",
+                            summary=(
+                                f"Water consumption per unit of production decreased by {pct}% vs "
+                                f"previous month ({water_res.prev_intensity:.6f} to {water_res.intensity:.6f} m³/{prod_unit}). "
+                                f"Observed resource reduction: {water_res.observed_resource_reduction:,.2f} m³{saving_str}."
+                            ),
+                            observed_value=water_res.intensity,
+                            comparison_value=water_res.prev_intensity,
+                            change_percent=water_res.intensity_change_pct,
+                            unit=f"m³/{prod_unit}",
+                            caveat=CAVEAT_OBSERVED_IMPROVEMENT,
+                            recommendation=RecommendationCandidate(
+                                title="Maintain Water Conservation Practices",
+                                description="Maintain operational improvements and leak monitoring protocols that helped reduce water intensity.",
+                                steps_json=[
+                                    "Document wash cycle durations and flow rate limits in plant procedures.",
+                                    "Continue regular plumbing and valve inspection rounds.",
+                                ],
+                                priority="low",
+                                estimated_saving_quantity=water_res.observed_resource_reduction,
+                                estimated_saving_unit="m3",
+                                estimated_saving_inr=water_res.potential_saving_inr,
+                                assumptions="Calculated as observed reduction multiplied by prior month unit cost.",
+                            ),
+                        )
+                    )
 
             # Rule G: Fuel Intensity Up (>= 10%)
             fuel_res = calc_result.resources.get("fuel")
             if (
                 fuel_res
                 and fuel_res.intensity_change_pct is not None
-                and fuel_res.intensity_change_pct >= FUEL_INTENSITY_UP_THRESHOLD
             ):
-                pct = round(fuel_res.intensity_change_pct, 1)
-                sev = "high" if fuel_res.intensity_change_pct >= HIGH_SEVERITY_INTENSITY_THRESHOLD else "medium"
+                if fuel_res.intensity_change_pct >= FUEL_INTENSITY_UP_THRESHOLD:
+                    pct = round(fuel_res.intensity_change_pct, 1)
+                    sev = "high" if fuel_res.intensity_change_pct >= HIGH_SEVERITY_INTENSITY_THRESHOLD else "medium"
+                    candidates.append(
+                        InsightCandidate(
+                            metric_code="fuel_intensity_up",
+                            resource_type="fuel",
+                            severity=sev,
+                            title=f"Fuel Intensity Increased by {pct}%",
+                            summary=(
+                                f"Fuel consumption per unit of production rose by {pct}% vs "
+                                f"previous month ({fuel_res.prev_intensity:.4f} to {fuel_res.intensity:.4f} L/{prod_unit})."
+                            ),
+                            observed_value=fuel_res.intensity,
+                            comparison_value=fuel_res.prev_intensity,
+                            change_percent=fuel_res.intensity_change_pct,
+                            unit=f"L/{prod_unit}",
+                            caveat=CAVEAT_HEURISTIC,
+                            recommendation=RecommendationCandidate(
+                                title="Review Generator & Boiler Runtime Logs",
+                                description="Review generator or boiler runtime, operating schedules and maintenance logs where applicable.",
+                                steps_json=[
+                                    "Cross-reference fuel purchase dates with diesel generator runtime logs.",
+                                    "Check boiler insulation, steam traps, and air-fuel burner ratios.",
+                                    "Schedule preventative maintenance for diesel generators.",
+                                ],
+                                priority="medium",
+                            ),
+                        )
+                    )
+                # Rule G2: Fuel Intensity Down (<= -5%, Observed Improvement)
+                elif fuel_res.intensity_change_pct <= Decimal("-5.0"):
+                    pct = abs(round(fuel_res.intensity_change_pct, 1))
+                    saving_str = (
+                        f" (Estimated potential saving: ₹{fuel_res.potential_saving_inr:,.0f})"
+                        if fuel_res.potential_saving_inr is not None
+                        else ""
+                    )
+                    candidates.append(
+                        InsightCandidate(
+                            metric_code="fuel_intensity_down",
+                            resource_type="fuel",
+                            severity="low",
+                            title=f"Observed Fuel Reduction (-{pct}%)",
+                            summary=(
+                                f"Fuel consumption per unit of production decreased by {pct}% vs "
+                                f"previous month ({fuel_res.prev_intensity:.4f} to {fuel_res.intensity:.4f} L/{prod_unit}). "
+                                f"Observed resource reduction: {fuel_res.observed_resource_reduction:,.1f} L{saving_str}."
+                            ),
+                            observed_value=fuel_res.intensity,
+                            comparison_value=fuel_res.prev_intensity,
+                            change_percent=fuel_res.intensity_change_pct,
+                            unit=f"L/{prod_unit}",
+                            caveat=CAVEAT_OBSERVED_IMPROVEMENT,
+                            recommendation=RecommendationCandidate(
+                                title="Maintain Fuel Optimization Practices",
+                                description="Continue preventative maintenance and runtime monitoring that contributed to reduced fuel usage.",
+                                steps_json=[
+                                    "Continue logging generator operating hours against grid availability.",
+                                    "Inspect burner air-fuel ratio during monthly maintenance rounds.",
+                                ],
+                                priority="low",
+                                estimated_saving_quantity=fuel_res.observed_resource_reduction,
+                                estimated_saving_unit="L",
+                                estimated_saving_inr=fuel_res.potential_saving_inr,
+                                assumptions="Calculated as observed reduction multiplied by prior month unit cost.",
+                            ),
+                        )
+                    )
+
+            # Rule H: Stable Operational Efficiency (Baseline Consistency)
+            # When comparative data is available and no resource breached anomaly thresholds
+            comparative_candidates = [
+                c for c in candidates if c.metric_code in (
+                    "electricity_intensity_up", "electricity_intensity_down",
+                    "water_intensity_up", "water_intensity_down",
+                    "fuel_intensity_up", "fuel_intensity_down",
+                )
+            ]
+            if not comparative_candidates and curr_utils and curr_prod and curr_prod.quantity > Decimal(0):
+                tracked_res_names = [r.title() for r in curr_utils.keys()]
+                res_display = ", ".join(tracked_res_names)
                 candidates.append(
                     InsightCandidate(
-                        metric_code="fuel_intensity_up",
-                        resource_type="fuel",
-                        severity=sev,
-                        title=f"Fuel Intensity Increased by {pct}%",
+                        metric_code="stable_resource_intensity",
+                        resource_type=None,
+                        severity="low",
+                        title=f"Stable Resource Efficiency for {selected_month.strftime('%B %Y')}",
                         summary=(
-                            f"Fuel consumption per unit of production rose by {pct}% vs "
-                            f"previous month ({fuel_res.prev_intensity:.4f} to {fuel_res.intensity:.4f} L/{prod_unit})."
+                            f"Resource intensity for {res_display} operated within normal baseline variance "
+                            f"(under ±5% change) vs previous month at a production volume of {curr_prod.quantity:,.0f} {prod_unit}. "
+                            "Consumption patterns remain consistent and well-controlled."
                         ),
-                        observed_value=fuel_res.intensity,
-                        comparison_value=fuel_res.prev_intensity,
-                        change_percent=fuel_res.intensity_change_pct,
-                        unit=f"L/{prod_unit}",
+                        observed_value=curr_prod.quantity,
+                        comparison_value=prev_prod.quantity if prev_prod else None,
+                        change_percent=None,
+                        unit=prod_unit,
                         caveat=CAVEAT_HEURISTIC,
                         recommendation=RecommendationCandidate(
-                            title="Review Generator & Boiler Runtime Logs",
-                            description="Review generator or boiler runtime, operating schedules and maintenance logs where applicable.",
+                            title="Maintain Standard Operating Procedures",
+                            description="Continue existing energy and resource operating procedures while monitoring for seasonal demand shifts.",
                             steps_json=[
-                                "Cross-reference fuel purchase dates with diesel generator runtime logs.",
-                                "Check boiler insulation, steam traps, and air-fuel burner ratios.",
-                                "Schedule preventative maintenance for diesel generators.",
+                                "Review monthly consumption baselines during regular management meetings.",
+                                "Keep preventative maintenance schedules updated for high-uptime machinery.",
+                                "Ensure equipment shutdown checklists are followed across production shifts.",
                             ],
-                            priority="medium",
+                            priority="low",
                         ),
                     )
                 )

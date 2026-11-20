@@ -64,16 +64,17 @@ export const insightsApi = {
     return apiClient<InsightResponse[]>(`/insights${query}`, { method: 'GET' });
   },
 
-  generateInsights: async (params: string | InsightGenerateParams): Promise<InsightGenerateResponse> => {
+  generateInsights: async (params?: string | InsightGenerateParams): Promise<InsightGenerateResponse> => {
     let query = '';
     if (typeof params === 'string') {
-      query = `?month=${encodeURIComponent(params)}`;
-    } else {
+      query = params ? `?month=${encodeURIComponent(params)}` : '';
+    } else if (params) {
       const searchParams = new URLSearchParams();
       if (params.month) searchParams.append('month', params.month);
       if (params.start_month) searchParams.append('start_month', params.start_month);
       if (params.end_month) searchParams.append('end_month', params.end_month);
-      query = `?${searchParams.toString()}`;
+      const qs = searchParams.toString();
+      if (qs) query = `?${qs}`;
     }
     return apiClient<InsightGenerateResponse>(`/insights/generate${query}`, {
       method: 'POST',
